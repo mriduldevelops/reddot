@@ -28,12 +28,9 @@ export async function POST(req) {
         console.log(formData)
         const timestamp = Date.now();
         const image = formData.get('image');
-        if (!image) {
-            return NextResponse.json({ error: "no image" }, { status: 400 });
-        }
         const imageByteData = await image.arrayBuffer();
         const buffer = Buffer.from(imageByteData);
-        const path = `./public/${timestamp}_${image.name}`;
+        const path = `/tmp/${timestamp}_${image.name}`;
         await writeFile(path, buffer);
         const imgUrl = `/${timestamp}_${image.name}`;
 
@@ -53,6 +50,8 @@ export async function POST(req) {
         // await BlogModel.create(BlogData);
         return NextResponse.json({ message: 'Blog created successfully', blog: newBlog }, { status: 201 });
     } catch (err) {
+        console.error("POST Error:", err); 
         return NextResponse.json({ error: 'Failed to create blog' }, { status: 500 });
     }
+
 }
