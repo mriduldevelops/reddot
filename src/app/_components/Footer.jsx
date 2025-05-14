@@ -10,7 +10,7 @@ function Footer() {
                     <p className='text-3xl font-semibold flex tracking-tighter'>reddot<span className='flex items-end '><CircleSmall fill='red' strokeWidth={0} /></span></p>
                 </Link>
             </div>
-            <div className='flex justify-between'>
+            <div className='space-y-4 md:flex justify-between '>
                 <div>
                     <p className='text-sm font-semibold pb-2'>Useful Links</p>
                     <div className='text-sm text-zinc-800 flex gap-8'>
