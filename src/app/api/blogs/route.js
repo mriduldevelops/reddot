@@ -2,6 +2,7 @@ import BlogModel from "@/models/blog";
 import dbConnect from "@/utils/dbConnect";
 import { NextResponse } from "next/server";
 import { writeFile } from 'fs/promises';
+import cloudinary from "@/utils/cloudinary";
 
 export async function GET() {
     try {
@@ -24,32 +25,35 @@ export async function POST(req) {
     // const { title, content, image, author } = await req.json();
     // console.log({ title, content, image, author })
     try {
-        const formData = await req.formData();
-        console.log(formData)
-        const timestamp = Date.now();
-        const image = formData.get('image');
-        const imageByteData = await image.arrayBuffer();
-        const buffer = Buffer.from(imageByteData);
-        const path = `./public/${timestamp}_${image.name}`;
-        await writeFile(path, buffer);
-        const imgUrl = `/${timestamp}_${image.name}`;
+    const formData = await req.formData();
+    const image = formData.get('image');
+    const imageBuffer = Buffer.from(await image.arrayBuffer());
 
-        const BlogData = {
-            title: `${formData.get('title')}`,
-            content: `${formData.get('content')}`,
-            author: `${formData.get('author')}`,
-            image: `${imgUrl}`
+    // Upload to Cloudinary
+    const result = await new Promise((resolve, reject) => {
+      const stream = cloudinary.uploader.upload_stream(
+        { folder: 'blogs' },
+        (error, result) => {
+          if (error) reject(error);
+          else resolve(result);
         }
+      );
+      stream.end(imageBuffer);
+    });
 
-        console.log({ ...BlogData });
-        // return NextResponse.json({...BlogData});
-        const newBlog = new BlogModel({ ...BlogData });
-        console.log(newBlog)
-        await newBlog.save();
+    const BlogData = {
+      title: `${formData.get('title')}`,
+      content: `${formData.get('content')}`,
+      author: `${formData.get('author')}`,
+      image: result.secure_url,
+    };
 
-        // await BlogModel.create(BlogData);
-        return NextResponse.json({ message: 'Blog created successfully', blog: newBlog }, { status: 201 });
-    } catch (err) {
+    const newBlog = new BlogModel(BlogData);
+    await newBlog.save();
+
+    return NextResponse.json({ message: 'Blog created successfully', blog: newBlog }, { status: 201 });
+
+  } catch (err) {
         console.error("POST Error:", err); 
         return NextResponse.json({ error: 'Failed to create blog' }, { status: 500 });
     }
