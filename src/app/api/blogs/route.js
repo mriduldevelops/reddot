@@ -9,7 +9,7 @@ export async function GET() {
 
         const blogs = await BlogModel.find()
             .sort({ createdAt: -1 })
-            // .populate('author', 'username');
+        // .populate('author', 'username');
 
         return NextResponse.json(blogs, { status: 200 });
     } catch (error) {
@@ -28,6 +28,9 @@ export async function POST(req) {
         console.log(formData)
         const timestamp = Date.now();
         const image = formData.get('image');
+        if (!image) {
+            return NextResponse.json({ error: "no image" }, { status: 400 });
+        }
         const imageByteData = await image.arrayBuffer();
         const buffer = Buffer.from(imageByteData);
         const path = `./public/${timestamp}_${image.name}`;
